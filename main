@@ -1,0 +1,196 @@
+#i n cl u d e " EmonLib . h "
+#d ef i n e VOLT_CAL 592
+EnergyMonitor emon1 ;
+#i n cl u d e <Wire . h>
+#i n cl u d e <LiquidC ry s tal_ I2C . h>
+LiquidC ry s tal_ I2C l c d (0 x27 , 16 , 2 ) ;
+#i n cl u d e <OneWire . h>
+#i n cl u d e <Dalla sTempe ra tu re . h>
+#d ef i n e ONE_WIRE_BUS 7
+OneWire oneWire (ONE_WIRE_BUS) ;
+Dalla sTempe ra tu re s e n s o r s (&oneWire ) ;
+
+f l o a t C el ci u s = 0 ;
+co n s t i n t buzze r = 5 ;
+co n s t i n t t r i g P i n = 9 ;
+co n s t i n t echoPin = 1 0;
+lo ng d u ra tio n ;
+i n t di s t a n c e ;
+i n t h eig h t ;
+i n t p e r c e n t ;
+i n t val ;
+
+#i n cl u d e <S of t w a r e S e r i a l . h>
+S of t w a r e S e r i a l m ySe rial ( 3 , 2 ) ;
+#i n cl u d e " EmonLib . h "
+#i n cl u d e <Wire . h>
+// EnergyMonitor emon1 ;
+i n t pin_ sc t = 1 ;
+
+void se tup ( ) {
+l c d . b egin ( ) ;
+l c d . b a c kli g h t ( ) ;
+l c d . c l e a r ( ) ;
+
+S e r i a l . begi n ( 9 6 0 0 ) ;
+emon1 . c u r r e n t ( pin_sct , 1 9 . 5 ) ;
+
+emon1 . v ol t a g e ( 2 , VOLT_CAL, 1 . 7 ) ;
+pinMode ( buzzer , OUTPUT) ;
+pinMode ( t ri gPi n , OUTPUT) ;
+pinMode ( echoPin , INPUT ) ;
+m ySe rial . b egin ( 9 6 0 0 ) ;
+S e r i a l . begi n ( 9 6 0 0 ) ;
+}
+
+void loo p ( ) {
+
+s e n s o r s . re que s tTempe ra tu re s ( ) ;
+C el ci u s = s e n s o r s . getTempCByIndex ( 0 ) ;
+d ela y ( 3 0 0 ) ;
+
+d i g i t a lW r i t e ( t ri gPi n , LOW) ;
+
+d ela yMi c ro s e co n d s ( 2 ) ;
+d i g i t a lW r i t e ( t ri gPi n , HIGH ) ;
+d ela yMi c ro s e co n d s ( 1 0 ) ;
+d i g i t a lW r i t e ( t ri gPi n , LOW) ;
+d u ra tio n = p ul s e I n ( echoPin , HIGH ) ;
+
+i f ( p e r c e n t < 0 )
+{
+p e r c e n t = 0 ;
+}
+e l s e i f ( p e r c e n t > 100 )
+{
+p e r c e n t = 100;
+}
+
+emon1 . cal cV I (25 , 1 0 0 0 );
+f l o a t s u p pl yVol tag e = emon1 . Vrms ;
+i f ( s u p pl yVol tag e <= 10 )
+{
+s u p pl yVol tag e = 0 ;
+}
+
+l c d . s e t C u r so r ( 0 , 0 ) ;
+l c d . p r i n t ( " " ) ;
+l c d . s e t C u r so r ( 0 , 1 ) ;
+l c d . p r i n t ( " " ) ;
+l c d . s e t C u r so r ( 0 , 0 ) ;
+l c d . p r i n t ( " Vol tage = " ) ;
+l c d . p r i n t ( s u p pl yVol tag e ) ;
+l c d . p r i n t ( " V " ) ;
+
+double Irms = emon1 . c al c I rm s ( 1 4 8 0 ) ;
+S e r i a l . p r i n t ( " Vol tage : " ) ;
+S e r i a l . p r i n t ( s u p pl yVol tag e ) ;
+S e r i a l . p r i n t ( " , " ) ;
+
+S e r i a l . p r i n t ( " Temperature : " ) ;
+S e r i a l . p r i n t ( C el ci u s ) ;
+S e r i a l . p r i n t ( " , " ) ;
+
+S e r i a l . p r i n t ( " Oil−Heigh t : " ) ;
+S e r i a l . p r i n t ( p e r c e n t ) ;
+S e r i a l . p r i n t ( " , " ) ;
+
+S e r i a l . p r i n t ( " Current : " ) ;
+S e r i a l . p r i n t l n ( Irms ) ;
+
+l c d . s e t C u r so r ( 0 , 1 ) ;
+l c d . p r i n t ( " Current = " ) ;
+l c d . p r i n t ( Irms ) ;
+l c d . p r i n t ( " A " ) ;
+
+d ela y ( 1 2 0 0 ) ;
+
+l c d . s e t C u r so r ( 0 , 0 ) ;
+l c d . p r i n t ( " " ) ;
+l c d . s e t C u r so r ( 0 , 0 ) ;
+l c d . p r i n t ( "TEMP = " ) ;
+l c d . p r i n t ( C el ci u s ) ;
+l c d . p r i n t ( " C " ) ;
+
+l c d . s e t C u r so r ( 0 , 1 ) ;
+l c d . p r i n t ( " " ) ;
+l c d . s e t C u r so r ( 0 , 1 ) ;
+l c d . p r i n t ( " Oil Heigh t = " );
+l c d . p r i n t ( p e r c e n t ) ;
+l c d . p r i n t ( " % " ) ;
+
+d ela y ( 2 5 0 ) ;
+
+i f ( p e r c e n t < 65 )
+{
+d i g i t a lW r i t e ( buzzer , HIGH ) ;
+d ela y ( 1 0 0 0 ) ;
+d i g i t a lW r i t e ( buzzer , LOW) ;
+
+// S e r i a l . p r i n t ( "LOW OIL LEVEL " ) ;
+
+l c d . s e t C u r so r ( 0 , 0 ) ; ;
+
+// code f o r send SMS
+
+m ySe rial . p r i n t l n ( "AT+CMGF=1 " );
+d ela y ( 1 0 0 0 ) ;
+m ySe rial . p r i n t l n ( "AT+CMGS=\"+918592083144\"\ r " ) ;
+d ela y ( 1 0 0 0 ) ;
+m ySe rial . p r i n t l n ( "LOW OIL LEVEL " ) ;
+m ySe rial . p r i n t l n ( pe r
+l c d . p r i n t ( " " ) ;
+l c d . s e t C u r so r ( 0 , 0 ) ;
+l c d . p r i n t ( "LOW OIL LEVEL " ) c e n t ) ;
+d ela y ( 1 0 0 ) ;
+m ySe rial . p r i n t l n ( ( cha r ) 2 6 ) ;
+d ela y ( 7 0 0 0 ) ;
+}
+
+i f ( C el ci u s > 55 )
+{
+
+d i g i t a lW r i t e ( buzzer , HIGH ) ;
+d ela y ( 1 0 0 0 ) ;
+d i g i t a lW r i t e ( buzzer , LOW) ;
+S e r i a l . p r i n t ( " Temperature high , " ) ;
+
+l c d . s e t C u r so r ( 0 , 1 ) ;
+l c d . p r i n t ( " " ) ;
+l c d . s e t C u r so r ( 0 , 1 ) ;
+l c d . p r i n t ( " Temperature high " ) ;
+
+m ySe rial . p r i n t l n ( "AT+CMGF=1 " );
+d ela y ( 1 0 0 0 ) ;
+m ySe rial . p r i n t l n ( "AT+CMGS=\"+918592083144\"\ r " ) ;
+d ela y ( 1 0 0 0 ) ;
+m ySe rial . p r i n t l n ( " Temperature high " ) ;
+m ySe rial . p r i n t l n ( C el ci u s ) ;
+d ela y ( 1 0 0 ) ;
+m ySe rial . p r i n t l n ( ( cha r ) 2 6 ) ;
+d ela y ( 7 0 0 0 ) ;
+}
+
+i f ( Irms > 70 )
+{
+
+d i g i t a lW r i t e ( buzzer , HIGH ) ;
+d ela y ( 1 0 0 0 ) ;
+d i g i t a lW r i t e ( buzzer , LOW) ;
+l c d . s e t C u r so r ( 0 , 1 ) ;
+l c d . p r i n t ( " " ) ;
+l c d . s e t C u r so r ( 0 , 1 ) ;
+l c d . p r i n t ( " c u r r e n t high " ) ;
+
+// code f o r send SMS
+m ySe rial . p r i n t l n ( "AT+CMGF=1 " );
+d ela y ( 1 0 0 0 ) ;
+m ySe rial . p r i n t l n ( "AT+CMGS=\"+918592083144\"\ r " ) ;
+d ela y ( 1 0 0 0 ) ;
+m ySe rial . p r i n t l n ( " c u r r e n t high " ) ;
+m ySe rial . p r i n t l n ( Irms ) ;
+d ela y ( 1 0 0 ) ;
+m ySe rial . p r i n t l n ( ( cha r ) 2 6 ) ;
+d ela y ( 7 0 0 0 ) ;
+}
+}
